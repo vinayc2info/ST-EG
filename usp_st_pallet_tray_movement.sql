@@ -12,7 +12,6 @@ ALTER PROCEDURE "DBA"."usp_st_pallet_tray_movement"(
   in @GodownCode char(6) ) 
 result( "is_xml_string" xml ) 
 begin
-// if more than one dynamic godown is there it was showing wrong dynamic godown in assign tray to pallet window
   declare @pigeon_flag integer;
   declare @max_pallet_capacity numeric(8);
   declare @cnt_trays_on_pallet numeric(8);
