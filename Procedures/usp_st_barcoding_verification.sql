@@ -2,7 +2,7 @@ CREATE PROCEDURE "DBA"."usp_st_barcoding_verification"(
   /* Issues Resolved
 1. Scanning pick tray, counter list sorting
 2. Stacking store wise det displying
-3. Partially Barcoded Pop up message display
+3. Partially Barcoded Pop up message display 
 */
   in @gsBr char(6),
   in @devID char(200),
