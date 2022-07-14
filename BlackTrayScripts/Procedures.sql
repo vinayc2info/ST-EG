@@ -3,7 +3,6 @@ create or replace procedure usp_st_err_tracking(
   in @devID char(200),
   in @sKey char(20),
   in @UserId char(20),
-  in @PhaseCode char(6),
   in @StageCode char(6),
   in @RackGrpCode char(300),
   in @cIndex char(30),
@@ -18,13 +17,11 @@ declare @carton_no char(6);
     set @devID = "http_variable"('devID'); 
     set @sKey = "http_variable"('sKey');
     set @UserId = "http_variable"('UserId');
-    set @PhaseCode = "http_variable"('PhaseCode'); 	
     set @RackGrpCode = "http_variable"('RackGrpCode'); 
     set @StageCode = "http_variable"('StageCode'); 
     set @cIndex = "http_variable"('cIndex'); 
     set @HdrData = "http_variable"('HdrData'); 
     set @DetData = "http_variable"('DetData'); 
-    set @tray_code = "http_variable"('trayCode'); 
     set @GodownCode = "http_variable"('GodownCode') 		
   end if;
   case @cIndex
