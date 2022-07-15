@@ -36,6 +36,7 @@ if (select count() from systable where creator = 1 and table_name = 'st_err_trac
     "c_luser" CHAR(10) NULL,
     PRIMARY KEY ( "c_doc_no" ASC, "n_inout" ASC, "n_seq" ASC, "c_tray_code" ASC, "c_rack_grp_code" ASC )
   ) IN "system";
+  COMMENT ON COLUMN "DBA"."st_err_track_det"."n_err_type" IS '0 item_short,1 item_excess,2 item_breakage,3 wrong_item,4 batch_mismatch';
 end if;
 commit work;
 go

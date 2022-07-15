@@ -27,7 +27,7 @@ declare @carton_no char(6);
   case @cIndex
   when 'supervisor_dashboard' then
     select 
-        c_chk_user as conversion_user,
+        c_err_mark_user as conversion_user,
         c_item_code as item_code,
         item_mst.c_name as item_name,
         c_batch_no as batch_no,
@@ -41,5 +41,14 @@ declare @carton_no char(6);
     join item_mst on item_mst.c_code = st_err_track_det.c_item_code
     where st_err_track_det.n_complete = 0 for xml raw,elements
   end case
-end 
+end;
+commit work;
+go
 
+
+if (select count() from syswebservice where service_name = 'ws_st_err_tracking') = 0 then
+    CREATE SERVICE "ws_st_err_tracking" TYPE 'RAW' AUTHORIZATION OFF USER "DBA" URL ELEMENTS AS select '<root>'+"is_xml_string"+'</root>'
+      from "DBA"."usp_st_err_tracking"(:url1,:url2,:url3,:url4,:url5,:url6,:url7,:url8,:url9,:url10);
+end if ;
+commit work;
+go
