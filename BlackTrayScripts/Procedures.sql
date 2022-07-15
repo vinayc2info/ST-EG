@@ -1,10 +1,3 @@
-if (select count() from syswebservice where service_name = 'ws_st_err_tracking') = 0 then
-    CREATE SERVICE "ws_st_err_tracking" TYPE 'RAW' AUTHORIZATION OFF USER "DBA" URL ELEMENTS AS select '<root>'+"is_xml_string"+'</root>'
-      from "DBA"."usp_st_err_tracking"(:url1,:url2,:url3,:url4,:url5,:url6,:url7,:url8,:url9,:url10);
-end if ;
-commit work;
-go
-
 create or replace procedure usp_st_err_tracking(  
   in @gsBr char(6),
   in @devID char(200),
@@ -53,7 +46,7 @@ declare @carton_no char(6);
         t_err_time as err_req_time,
         c_supervisor as spvr_name,
         t_spvr_err_marked_time as spvr_err_marked_time
-    from st_err_track_dets
+    from st_err_track_det
     join item_mst on item_mst.c_code = st_err_track_det.c_item_code
     left join stock on stock.c_br_code = uf_get_br_code('000') and stock.c_item_code = st_err_track_det.c_item_code and stock.c_batch_no = st_err_track_det.c_batch_no
     left join (select c_br_code, c_item_code, c_batch_no, sum(stock_godown.n_qty - stock_godown.n_hold_qty) as godown_bal_qty 

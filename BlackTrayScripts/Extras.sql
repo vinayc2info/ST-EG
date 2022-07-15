@@ -3,6 +3,7 @@ select top 10
 c_doc_no,n_inout,n_seq,n_org_seq,c_item_code,c_batch_no,n_qty,c_tray_code,item_mst_br_info.c_rack,rack_mst.c_rack_grp_code,ssd.c_stage_code,rack_group_mst.c_godown_code as c_godown_code,
 c_reason_code,
 '' as c_note,
+'88888' as c_black_tray_code,
 0 as n_err_type,
 'TEST' as c_err_mark_user,
 now() as t_err_time,
@@ -29,4 +30,3 @@ join st_store_stage_det ssd on ssd.c_rack_grp_code = rack_group_mst.c_code and s
 join st_store_stage_mst ssm on ssm.c_code = ssd.c_stage_code and ssm.c_br_code = ssd.c_br_code
 //where item_mst_br_info.c_code = '208294'
 order by 4 asc
-
