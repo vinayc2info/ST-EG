@@ -32,7 +32,16 @@ declare @carton_no char(6);
         item_mst.c_name as item_name,
         c_batch_no as batch_no,
         n_qty as err_qty,
+        45 as stk_bal_qty,
         n_err_type as err_type,
+        CASE err_type
+            WHEN 0 THEN 'ITEM SHORT'
+            WHEN 1 THEN 'ITEM EXCESS'
+            WHEN 2 THEN 'ITEM BREAKAGE/DAMAGED'
+            WHEN 3 THEN 'WRONG ITEM'
+            WHEN 4 THEN 'BATCH MISMATCH'
+            ELSE 'NO REASON'
+        END CASE as err_type_name,
         c_err_mark_user as err_mark_user,
         t_err_time as err_req_time,
         c_supervisor as spvr_name,
