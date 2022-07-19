@@ -125,7 +125,7 @@ Vinay Kumar S       19-07-22            supervisor_approve          Worked on th
         st_err_track_det.c_godown_code
     from st_err_track_det
     join item_mst on item_mst.c_code = st_err_track_det.c_item_code
-    left join stock on stock.c_br_code = uf_get_br_code(@BrCode) and stock.c_item_code = st_err_track_det.c_item_code and stock.c_batch_no = st_err_track_det.c_batch_no
+    left join stock on stock.c_br_code = @BrCode and stock.c_item_code = st_err_track_det.c_item_code and stock.c_batch_no = st_err_track_det.c_batch_no
     left join (select c_br_code, c_item_code, c_batch_no, sum(stock_godown.n_qty - stock_godown.n_hold_qty) as godown_bal_qty 
                 from stock_godown 
                 group by  c_br_code, c_item_code, c_batch_no
