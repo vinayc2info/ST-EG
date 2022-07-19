@@ -35,9 +35,9 @@ if (select count() from systable where creator = 1 and table_name = 'st_err_trac
     n_hold_flag NUMERIC(1,0) NULL DEFAULT 0,
     t_ltime TIMESTAMP NULL,
     c_luser CHAR(10) NULL,
-    PRIMARY KEY ( c_doc_no ASC, n_inout ASC, n_seq ASC, c_tray_code ASC, c_rack_grp_code ASC )
+  PRIMARY KEY ( c_doc_no ASC, n_inout ASC, n_seq ASC, c_tray_code ASC, c_rack_grp_code ASC )
   ) IN system;
-  COMMENT ON COLUMN DBA.st_err_track_det.n_err_type IS '0 item_short,1 item_excess,2 item_breakage,3 wrong_item,4 batch_mismatch';
+COMMENT ON COLUMN DBA.st_err_track_det.n_err_type IS '0 item_short,1 item_excess,2 item_breakage,3 wrong_item,4 batch_mismatch';
 end if;
 commit work;
 go
@@ -84,7 +84,6 @@ if (select count() from systable where creator = 1 and table_name = 'black_tray_
   	t_ltime TIMESTAMP NULL DEFAULT CURRENT TIMESTAMP,
   	PRIMARY KEY ( c_br_code ASC, c_year ASC, c_prefix ASC, n_srno ASC, n_inout ASC, n_seq ASC )
   ) IN system;
-  end if;
+end if;
 commit work;
 go
-
