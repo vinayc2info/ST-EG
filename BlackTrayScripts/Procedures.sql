@@ -26,6 +26,7 @@ declare @carton_no char(6);
   end if;
   case @cIndex
   when 'supervisor_dashboard' then
+  --http://192.168.0.102:22503/ws_st_err_tracking?&cIndex=supervisor_dashboard&gsbr=503&devID=993f34b165f1780017062022030807379&sKEY=sKey&UserId=S%20KAMBLE
     select 
         c_err_mark_user as conversion_user,
         st_err_track_det.c_black_tray_code as black_tray_code,
@@ -46,7 +47,16 @@ declare @carton_no char(6);
         c_err_mark_user as err_mark_user,
         t_err_time as err_req_time,
         c_supervisor as spvr_name,
-        t_spvr_err_marked_time as spvr_err_marked_time
+        t_spvr_err_marked_time as spvr_err_marked_time,
+        st_err_track_det.c_doc_no,
+        st_err_track_det.n_inout,
+        st_err_track_det.n_seq,
+        st_err_track_det.n_org_seq,
+        st_err_track_det.c_tray_code,
+        st_err_track_det.c_rack,
+        st_err_track_det.c_rack_grp_code,
+        st_err_track_det.c_stage_code,
+        st_err_track_det.c_godown_code
     from st_err_track_det
     join item_mst on item_mst.c_code = st_err_track_det.c_item_code
     left join stock on stock.c_br_code = uf_get_br_code('000') and stock.c_item_code = st_err_track_det.c_item_code and stock.c_batch_no = st_err_track_det.c_batch_no
