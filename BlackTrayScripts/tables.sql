@@ -87,3 +87,4 @@ if (select count() from systable where creator = 1 and table_name = 'black_tray_
   end if;
 commit work;
 go
+
