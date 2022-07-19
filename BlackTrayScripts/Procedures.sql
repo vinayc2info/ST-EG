@@ -11,7 +11,13 @@ create or replace procedure usp_st_err_tracking(
   in @GodownCode char(6)) 
 result( "is_xml_string" xml ) 
 begin
-declare @carton_no char(6);
+  --declaring the variables
+  declare @BrCode char(6);
+  declare @year char(6);
+  declare @prefix char(6);
+  declare @trans char(6);
+  declare @trans_srno numeric(18,0);
+  --setting the variables
   if @devID = '' or @devID is null then
     set @gsBr = "http_variable"('gsBr'); 
     set @devID = "http_variable"('devID'); 
@@ -24,6 +30,10 @@ declare @carton_no char(6);
     set @DetData = "http_variable"('DetData'); 
     set @GodownCode = "http_variable"('GodownCode') 		
   end if;
+  set @BrCode = uf_get_br_code(@gsBr);
+  set @year = right(db_name(),2);
+  set @prefix ='500';
+  set @trans ='BTD';
   case @cIndex
   when 'supervisor_dashboard' then
   --http://192.168.0.102:22503/ws_st_err_tracking?&cIndex=supervisor_dashboard&gsbr=503&devID=993f34b165f1780017062022030807379&sKEY=sKey&UserId=S%20KAMBLE
@@ -71,13 +81,16 @@ declare @carton_no char(6);
   when 'supervisor_approve' then
     CASE err_type
         WHEN 0 THEN --'ITEM SHORT'
-            print 'ITEM SHORT';
+            update prefix_serial_no set n_sr_number = n_sr_number + 1  where c_br_code = @BrCode and c_year = @year and c_prefix =@prefix and c_trans = @trans;
+            select n_sr_number into @tran_srno from prefix_serial_no where c_br_code = @BrCode and c_year = @year and c_prefix =@prefix and c_trans = @trans;
         WHEN 1 THEN --'ITEM EXCESS'
             print 'ITEM EXCESS';
         WHEN 2 THEN --'ITEM BREAKAGE/DAMAGED'
-            print 'ITEM BREAKAGE/DAMAGED';
+            update prefix_serial_no set n_sr_number = n_sr_number + 1  where c_br_code = @BrCode and c_year = @year and c_prefix =@prefix and c_trans = @trans;
+            select n_sr_number into @tran_srno from prefix_serial_no where c_br_code = @BrCode and c_year = @year and c_prefix =@prefix and c_trans = @trans;
         WHEN 3 THEN --'WRONG ITEM'
-            print 'WRONG ITEM';
+            update prefix_serial_no set n_sr_number = n_sr_number + 1  where c_br_code = @BrCode and c_year = @year and c_prefix =@prefix and c_trans = @trans;
+            select n_sr_number into @tran_srno from prefix_serial_no where c_br_code = @BrCode and c_year = @year and c_prefix =@prefix and c_trans = @trans;
         WHEN 4 THEN --'BATCH MISMATCH'
             print 'BATCH MISMATCH'
         ELSE --'NO REASON'
