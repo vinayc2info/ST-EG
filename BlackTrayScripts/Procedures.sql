@@ -56,6 +56,17 @@ create or replace procedure usp_st_err_tracking(
   in @GodownCode char(6)) 
 result( "is_xml_string" xml ) 
 begin
+/*
+Author 		:  Vinay Kumar S
+Procedure	: usp_st_err_tracking
+SERVICE		: ws_st_err_tracking
+Date 		  : 14-07-2022
+--------------------------------------------------------------------------------------------------------------------------------
+Modified By         Ldate               Index                       Changes
+--------------------------------------------------------------------------------------------------------------------------------
+Vinay Kumar S       19-07-22            supervisor_approve          Worked on the uf_get_new_tran function 
+--------------------------------------------------------------------------------------------------------------------------------
+*/
   --declaring the variables
   declare @BrCode char(6);
   declare @year char(6);
