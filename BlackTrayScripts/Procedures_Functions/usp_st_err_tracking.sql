@@ -20,6 +20,7 @@ Date 		  : 14-07-2022
 Modified By         Ldate               Index                       Changes
 --------------------------------------------------------------------------------------------------------------------------------
 Vinay Kumar S       19-07-22            supervisor_approve          Worked on the uf_get_new_tran function 
+Vinay Kumar S       19-07-22            supervisor_approve          Worked on DetData string and inserting into temp_table 
 --------------------------------------------------------------------------------------------------------------------------------
 */
   --declaring the variables
@@ -54,8 +55,36 @@ Vinay Kumar S       19-07-22            supervisor_approve          Worked on th
   declare @ErrMarkTime char(25);
   declare @SupervisorName char(15);
   declare @SupervisorMarkTime char(25);
+  declare @cust_cnt int;
+  declare @doc_cnt int;
+  declare @new_srno numeric(18,0);
   declare local temporary table temp_black_tray_det(
     n_inout integer,
+    c_cust_code char(6),
+    c_doc_no char(25),
+    n_seq numeric(6),
+    n_org_seq numeric(6),
+    c_tray_code char(6),
+    c_rack char(6),
+    c_rack_grp_code char(6),
+    c_stage_code char(6),
+    c_godown_code char(6),
+    black_tray_code char(6),
+    item_code char(6),
+    batch_no char(15),
+    err_qty numeric(11),
+    err_type integer,
+    err_mark_user char(15),
+    err_req_time datetime,
+    spvr_name char(15),
+    spvr_err_marked_time datetime,
+  primary key(n_inout asc, c_doc_no asc, n_seq asc, n_org_seq asc, item_code asc, batch_no asc, err_type asc)
+  ) on commit preserve rows;
+  declare local temporary table temp_cust_seq_wise_black_tray_det(
+    n_inout integer,
+    n_cust_seq integer,
+    n_doc_seq integer,
+    n_item_seq integer,
     c_cust_code char(6),
     c_doc_no char(25),
     n_seq numeric(6),
@@ -95,7 +124,7 @@ Vinay Kumar S       19-07-22            supervisor_approve          Worked on th
   set @RowMaxLen = "Length"(@RowSep);
   set @BrCode = uf_get_br_code(@gsBr);
   set @year = right(db_name(),2);
-  set @prefix ='500';
+  set @prefix ='Z';
   set @trans ='BTD';
   case @cIndex
   when 'supervisor_dashboard' then
@@ -142,7 +171,7 @@ Vinay Kumar S       19-07-22            supervisor_approve          Worked on th
               and stock.c_br_code = stk_godown.c_br_code
     where st_err_track_det.n_complete = 0 for xml raw,elements
   when 'supervisor_approve' then
-  --http://172.16.17.64:22503/ws_st_err_tracking?&cIndex=supervisor_approve&DetData=0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237835^^330858D7^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237836^^330858D7^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||&gsbr=503&devID=993f34b165f1780017062022030807379&sKEY=sKey&UserId=S%20KAMBLE
+  --http://172.16.17.64:22503/ws_st_err_tracking?&cIndex=supervisor_approve&DetData=0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237835^^330858D7^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237836^^330858D7^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237837^^330858D8^^15.000^^2^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237838^^330858D9^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237837^^330858D8^^15.000^^3^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||&gsbr=503&devID=993f34b165f1780017062022030807379&sKEY=sKey&UserId=S KAMBLE
   while @DetData <> '' loop
   	--n_inout
   	select "Locate"(@DetData,@ColSep) into @ColPos;
@@ -221,25 +250,96 @@ Vinay Kumar S       19-07-22            supervisor_approve          Worked on th
         (n_inout,c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,c_rack,c_rack_grp_code ,c_stage_code ,c_godown_code,black_tray_code,item_code,batch_no,
         err_qty ,err_type,err_mark_user,err_req_time,spvr_name,spvr_err_marked_time) 
       on existing skip values 
-        (@InOutFlag,@CustCode, @DocNo,@Seq,@OrgSeq ,@TrayCode ,@RackCode ,@Rack_Grp_Code ,@Stage_Code ,@Godown_Code ,@BlackTrayCode,@ItemCode ,@BatchNo ,
-        @ErrQty ,@ErrType ,@ErrMarkUser ,@ErrMarkTime ,@SupervisorName ,@SupervisorMarkTime);    
+        (@InOutFlag,isnull(@CustCode,'325'), @DocNo,@Seq,@OrgSeq ,@TrayCode ,@RackCode ,@RackGrpCode ,@StageCode ,@GodownCode ,@BlackTrayCode,@ItemCode ,@BatchNo ,
+        @ErrQty ,@ErrType ,@ErrMarkUser ,@ErrMarkTime ,@SupervisorName ,@SupervisorMarkTime); 
+      set @CustCode = null;   
   	select "Locate"(@DetData,@RowSep) into @RowPos;
-  	set @DetData = "SubString"(@DetData,@RowPos+@RowMaxLen);      
+  	set @DetData = "SubString"(@DetData,@RowPos+@RowMaxLen);   
   end loop;
-  select * from temp_black_tray_det for xml raw,elements
+  insert into temp_cust_seq_wise_black_tray_det 
+    (n_inout,n_cust_seq,n_doc_seq,n_item_seq, c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,c_rack,c_rack_grp_code ,c_stage_code ,c_godown_code,black_tray_code,item_code,batch_no,
+    err_qty ,err_type,err_mark_user,err_req_time,spvr_name,spvr_err_marked_time) 
+    (select n_inout,
+        dense_rank() over (order by c_cust_code asc) n_cust_seq,
+        dense_rank() over (order by err_type asc) n_doc_seq,
+        row_number() over (partition by c_cust_code ,err_type order by c_doc_no asc) n_item_seq,
+        c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,
+        c_rack,c_rack_grp_code ,c_stage_code ,c_godown_code,black_tray_code,item_code,batch_no,
+        err_qty ,err_type,err_mark_user,err_req_time,spvr_name,spvr_err_marked_time
+     from temp_black_tray_det);
+    select count(distinct n_cust_seq) into @cust_cnt from temp_cust_seq_wise_black_tray_det;
+    WHILE @cust_cnt > 0 loop
+      select count(distinct n_doc_seq) into @doc_cnt 
+      from temp_cust_seq_wise_black_tray_det where n_cust_seq = @cust_cnt;
+        while @doc_cnt >0 loop
+          select uf_get_new_tran(@trans,@prefix) into @new_srno;
+          insert into black_tray_mst
+          select distinct 
+            @BrCode as c_br_code,
+            @year as c_year,
+            @prefix as c_prefix,
+            @new_srno as n_srno,
+            0 as n_inout,
+            today() as d_date,
+            c_cust_code,
+            spvr_name as c_supervisor,
+            2 as n_store_track,
+            today() as d_ldate,
+            now() as t_ltime
+          from temp_cust_seq_wise_black_tray_det 
+          where n_cust_seq = @cust_cnt
+            and n_doc_seq = @doc_cnt
+            and err_type in (0,2,3);
+          insert into black_tray_det
+          select 
+            @BrCode as c_br_code,
+            @year as c_year,
+            @prefix as c_prefix,
+            @new_srno as n_srno,
+            0 as n_inout,
+            n_item_seq as n_seq,
+            today() as d_date,
+            item_code as c_item_code,
+            batch_no as c_batch_no,
+            err_qty as n_qty,
+            c_rack,
+            c_rack_grp_code,
+            c_stage_code,
+            c_godown_code,
+            black_tray_code as c_black_tray_code,
+            err_type as n_err_type,
+            c_doc_no as c_ref_doc_no,
+            n_inout as n_ref_inout,
+            n_seq as n_ref_pick_seq,
+            n_org_seq as n_ref_org_seq,
+            2 as n_store_track,
+            today() as d_ldate,
+            now() as t_ltime
+          from temp_cust_seq_wise_black_tray_det 
+          where n_cust_seq = @cust_cnt
+            and n_doc_seq = @doc_cnt 
+            and err_type in (0,2,3);
+          // Reminder: Need to update st_track_err_det with ref_doc_no ,seq, n_inout , supervisor, supervisor_marked_time , n_complete
+          SET @doc_cnt = @doc_cnt - 1;
+        end loop;
+      SET @cust_cnt = @cust_cnt - 1;
+    end loop;
+    if sqlstate = '00000' or sqlstate = '02000' then
+      commit work;
+      select 1 as "n_status",
+      'Success' as "c_message" for xml raw,elements
+    else
+      rollback work;
+      select 0 as "n_status",
+      'Failure' as "c_message" for xml raw,elements
+    end if;
 //    CASE err_type
 //        WHEN 0 THEN --'ITEM SHORT'
-//            select uf_get_new_tran(@trans,@prefix) into @tran_srno;
-//        WHEN 1 THEN --'ITEM EXCESS'
-            
-//        WHEN 2 THEN --'ITEM BREAKAGE/DAMAGED'
-//            select uf_get_new_tran(@trans,@prefix) into @tran_srno;            
+//        WHEN 1 THEN --'ITEM EXCESS'            
+//        WHEN 2 THEN --'ITEM BREAKAGE/DAMAGED'      
 //        WHEN 3 THEN --'WRONG ITEM'
-//            select uf_get_new_tran(@trans,@prefix) into @tran_srno;
-//        WHEN 4 THEN --'BATCH MISMATCH'
-            
+//        WHEN 4 THEN --'BATCH MISMATCH'            
 //        ELSE --'NO REASON'
-//            print 'NO REASON';
 //    END CASE;
   end case
 end;

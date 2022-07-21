@@ -28,6 +28,8 @@ begin
   declare @SupervisorName char(15);
   declare @SupervisorMarkTime char(25);
   declare @cust_cnt int;
+  declare @doc_cnt int;
+  declare @new_srno numeric(18,0);
 
   declare local temporary table temp_black_tray_det(
     n_inout integer,
@@ -53,6 +55,7 @@ begin
   ) on commit preserve rows;
   declare local temporary table temp_cust_seq_wise_black_tray_det(
     n_inout integer,
+    n_cust_seq integer,
     n_doc_seq integer,
     n_item_seq integer,
     c_cust_code char(6),
@@ -77,7 +80,8 @@ begin
   ) on commit preserve rows;
 
   set @DetData = '0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237835^^330858D7^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237836^^330858D7^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||
-                  0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237837^^330858D8^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237838^^330858D9^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||';
+                  0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237837^^330858D8^^15.000^^2^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||0^^314/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237838^^330858D9^^15.000^^0^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||
+                  0^^325/22/O/16^^3^^1^^21417^^20073^^P20A^^P20^^-^^88888^^237837^^330858D8^^15.000^^3^^TEST^^2022-07-15 17:26:24.507^^DILEEP^^2022-07-15 17:28:38.476^^||';
   select "c_delim" into @ColSep from "ps_tab_delimiter" where "n_seq" = 0;
   select "c_delim" into @RowSep from "ps_tab_delimiter" where "n_seq" = 1;
   set @ColMaxLen = "Length"(@ColSep);
@@ -155,7 +159,7 @@ begin
   	--spvr_err_marked_time
   	select "Locate"(@DetData,@ColSep) into @ColPos;
   	set @SupervisorMarkTime = "Trim"("Left"(@DetData,@ColPos-1));
-  	set @DetData = "SubString"(@DetData,@ColPos+@ColMaxLen);   
+  	set @DetData = "SubString"(@DetData,@ColPos+@ColMaxLen);    
   
       select c_cust_code into @CustCode from st_track_mst  where n_inout = @InOutFlag and c_doc_no = @DocNo;
 
@@ -170,56 +174,72 @@ begin
   	set @DetData = "SubString"(@DetData,@RowPos+@RowMaxLen);   
   end loop;
   insert into temp_cust_seq_wise_black_tray_det 
-    (n_inout,n_doc_seq,n_item_seq, c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,c_rack,c_rack_grp_code ,c_stage_code ,c_godown_code,black_tray_code,item_code,batch_no,
+    (n_inout,n_cust_seq,n_doc_seq,n_item_seq, c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,c_rack,c_rack_grp_code ,c_stage_code ,c_godown_code,black_tray_code,item_code,batch_no,
     err_qty ,err_type,err_mark_user,err_req_time,spvr_name,spvr_err_marked_time) 
-    (select 
-        dense_rank() over (order by c_cust_code asc) n_doc_seq,
-        row_number() over (partition by c_cust_code order by c_doc_no asc) n_item_seq,n_inout,c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,
+    (select n_inout,
+        dense_rank() over (order by c_cust_code asc) n_cust_seq,
+        dense_rank() over (order by err_type asc) n_doc_seq,
+        row_number() over (partition by c_cust_code ,err_type order by c_doc_no asc) n_item_seq,
+        c_cust_code,c_doc_no,n_seq ,n_org_seq ,c_tray_code ,
         c_rack,c_rack_grp_code ,c_stage_code ,c_godown_code,black_tray_code,item_code,batch_no,
         err_qty ,err_type,err_mark_user,err_req_time,spvr_name,spvr_err_marked_time
      from temp_black_tray_det);
-    select count(distinct c_cust_code) into @cust_cnt from temp_cust_seq_wise_black_tray_det;
-    select * from temp_cust_seq_wise_black_tray_det;
-
-    
-
-  --select @cust_cnt; return;
-//  WHILE @cust_cnt > 0 loop
-//    --begin 
-//    --message @cust_cnt to client;
-
-//    SET @cust_cnt = @cust_cnt - 1;
-//  end loop;
-
-//    select 
-//      uf_get_br_code('000') as c_br_code,
-//      right(db_name(),2) as c_year,
-//      'Z' as c_prefix,
-//      uf_get_new_tran('BTD',c_prefix) as n_srno,
-//      0 as n_inout,
-//      today() as d_date,
-//      c_cust_code,
-//      spvr_name as c_supervisor,
-//      2 as n_store_track,
-//      today() as d_ldate,
-//      now() as t_ltime
-//    from temp_black_tray_det;
-
-//    select 
-//      uf_get_br_code('000') as c_br_code,
-//      right(db_name(),2) as c_year,
-//      'Z' as c_prefix,
-//      uf_get_new_tran('BTD',c_prefix) as n_srno,
-//      0 as n_inout,
-//      number(*) as n_seq,today() as d_date,
-//      item_code as c_item_code,batch_no as c_batch_no,err_qty as n_qty,c_rack,c_rack_grp_code,c_stage_code,c_godown_code,
-//      black_tray_code as c_black_tray_code,err_type as n_err_type,c_doc_no as c_ref_doc_no,n_inout as n_ref_inout,n_seq as n_ref_pick_seq,n_org_seq as n_ref_org_seq,
-//      2 as n_store_track,today() as d_ldate,now() as t_ltime
-//    from temp_black_tray_det;
+    select count(distinct n_cust_seq) into @cust_cnt from temp_cust_seq_wise_black_tray_det;
+    WHILE @cust_cnt > 0 loop
+      select count(distinct n_doc_seq) into @doc_cnt 
+      from temp_cust_seq_wise_black_tray_det where n_cust_seq = @cust_cnt;
+        while @doc_cnt >0 loop
+          select uf_get_new_tran('BTD','Z') into @new_srno;
+          insert into black_tray_mst
+          select distinct 
+            uf_get_br_code('000') as c_br_code,
+            right(db_name(),2) as c_year,
+            'Z' as c_prefix,
+            @new_srno as n_srno,
+            0 as n_inout,
+            today() as d_date,
+            c_cust_code,
+            spvr_name as c_supervisor,
+            2 as n_store_track,
+            today() as d_ldate,
+            now() as t_ltime
+          from temp_cust_seq_wise_black_tray_det 
+          where n_cust_seq = @cust_cnt
+            and n_doc_seq = @doc_cnt;
+          insert into black_tray_det
+          select 
+            uf_get_br_code('000') as c_br_code,
+            right(db_name(),2) as c_year,
+            'Z' as c_prefix,
+            @new_srno as n_srno,
+            0 as n_inout,
+            n_item_seq as n_seq,
+            today() as d_date,
+            item_code as c_item_code,
+            batch_no as c_batch_no,
+            err_qty as n_qty,
+            c_rack,
+            c_rack_grp_code,
+            c_stage_code,
+            c_godown_code,
+            black_tray_code as c_black_tray_code,
+            err_type as n_err_type,
+            c_doc_no as c_ref_doc_no,
+            n_inout as n_ref_inout,
+            n_seq as n_ref_pick_seq,
+            n_org_seq as n_ref_org_seq,
+            2 as n_store_track,
+            today() as d_ldate,
+            now() as t_ltime
+          from temp_cust_seq_wise_black_tray_det 
+          where n_cust_seq = @cust_cnt
+            and n_doc_seq = @doc_cnt;
+          SET @doc_cnt = @doc_cnt - 1;
+        end loop;
+      SET @cust_cnt = @cust_cnt - 1;
+    end loop;
 end
 
-//select * from black_tray_mst
-//select * from black_tray_det
  
 
 
