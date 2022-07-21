@@ -490,7 +490,14 @@ PRIMARY KEY ( n_seq ASC )
           select distinct "c_godown_Code","c_stage_code" from "st_store_stage_det" as "st"
               ,(select distinct "c_godown_Code","c_rack_grp_code" from "item_mst_br_info_godown","rack_mst"
                 where "c_rack" = "rack_mst"."c_Code") as "x"
-            where "x"."c_rack_grp_code" = "st"."c_rack_grp_code" and "x"."c_godown_code" = @GodownCode) as "stage_mst"
+            where "x"."c_rack_grp_code" = "st"."c_rack_grp_code" and "x"."c_godown_code" = @GodownCode
+            union
+            select distinct c_godown_code,c_stage_code from st_store_stage_det as st
+            ,(select distinct st_dynamic_item_det.c_godown_code,rack_mst.c_rack_grp_code from st_dynamic_item_det, rack_mst, rack_group_mst
+              where st_dynamic_item_det.c_rack = rack_mst.c_code
+                  and rack_mst.c_rack_grp_code = rack_group_mst.c_code
+                  and rack_mst.c_br_code = rack_group_mst.c_br_code) as x
+          where x.c_rack_grp_code = st.c_rack_grp_code and x.c_godown_code = @GodownCode) as "stage_mst"
           join "st_store_stage_mst" on "stage_mst"."c_stage_code" = "st_store_stage_mst"."c_code"
         where "st_store_stage_mst"."n_cancel_flag" = 0
         order by 1 asc for xml raw,elements
